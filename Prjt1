@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mes révisions</title>
+<style>
+
+:root{
+  --rojo:#c60b1e; --amarillo:#ffc400; --ink:#2b2b2b; --card:#ffffff; --bg:#fdf6e3;
+  --muted:#6b6b6b; --ok:#1e8e3e; --bad:#d23f31; --border:#eadfb8;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --ink:#f0e9d8; --card:#2a2620; --bg:#1c1913; --muted:#b8b0a0; --border:#443c28; }
+}
+:root[data-theme="dark"]{ --ink:#f0e9d8; --card:#2a2620; --bg:#1c1913; --muted:#b8b0a0; --border:#443c28; }
+*{box-sizing:border-box;}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;line-height:1.4;min-height:100%;}
+header{background:linear-gradient(135deg,var(--rojo),var(--amarillo));padding:22px 16px 26px;text-align:center;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.25);}
+header h1{margin:0;font-size:1.5rem;}
+header p{margin:6px 0 0;font-size:.9rem;opacity:.95;}
+main{max-width:520px;margin:0 auto;padding:16px 16px 40px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+label{display:block;font-weight:600;margin:14px 0 6px;font-size:.9rem;}
+input[type=text],select{width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--ink);font-size:1rem;}
+.opts{display:flex;flex-direction:column;gap:8px;margin-top:6px;}
+.opt{padding:10px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:transparent;color:var(--ink);text-align:left;font-size:.95rem;}
+.opt.selected{border-color:var(--rojo);background:rgba(198,11,30,.08);}
+.opt.correct{border-color:var(--ok);background:rgba(30,142,62,.12);}
+.opt.wrong{border-color:var(--bad);background:rgba(210,63,49,.12);}
+button.big{display:block;width:100%;padding:14px;background:var(--rojo);color:#fff;border:none;border-radius:12px;font-size:1.05rem;font-weight:700;cursor:pointer;margin-top:16px;}
+button.big:disabled{opacity:.5;}
+button.ghost{background:transparent;color:var(--rojo);border:2px solid var(--rojo);}
+.progress{height:8px;background:var(--border);border-radius:6px;overflow:hidden;margin-bottom:14px;}
+.progress>div{height:100%;background:var(--rojo);width:0%;transition:width .3s;}
+.qcount{font-size:.8rem;color:var(--muted);margin-bottom:6px;}
+.feedback{margin-top:10px;font-weight:600;font-size:.9rem;}
+.feedback.ok{color:var(--ok);} .feedback.bad{color:var(--bad);}
+.hidden{display:none;}
+.scorebig{font-size:2.6rem;font-weight:800;color:var(--rojo);text-align:center;}
+.msg{text-align:center;margin:6px 0 16px;}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:18px 0;}
+.pod{background:linear-gradient(180deg,var(--amarillo),var(--rojo));border-radius:8px 8px 0 0;color:#fff;text-align:center;padding:8px 6px;font-weight:700;font-size:.8rem;}
+.pod .name{display:block;font-size:.85rem;margin-bottom:4px;}
+.pod1{height:100px;order:2;width:33%;} .pod2{height:75px;order:1;width:30%;} .pod3{height:55px;order:3;width:30%;}
+ul.rank{list-style:none;padding:0;margin:10px 0;}
+ul.rank li{display:flex;justify-content:space-between;padding:8px 10px;border-bottom:1px solid var(--border);font-size:.9rem;}
+.note{font-size:.78rem;color:var(--muted);text-align:center;margin-top:8px;}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sub{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:18px 8px;font-size:1rem;font-weight:700;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px}
+.sub .em{font-size:2rem}.sub small{font-weight:400;color:var(--muted)}
+.sub:disabled{opacity:.45;cursor:not-allowed}
+.back{background:none;border:none;color:var(--rojo);font-weight:700;font-size:.95rem;padding:0 0 10px;cursor:pointer}
+.ch{margin-bottom:12px}.row{display:flex;gap:8px;margin-top:10px}
+.small{flex:1;padding:10px;border-radius:10px;border:2px solid var(--rojo);background:transparent;color:var(--rojo);font-weight:700;cursor:pointer}
+.course h2{margin-top:0}.course ul{padding-left:18px}.course li{margin:6px 0}
+.key{background:rgba(255,196,0,.25);border-left:4px solid var(--amarillo);padding:8px 10px;border-radius:6px;font-weight:700}
+.q{font-weight:600;margin-bottom:8px}
+h2{font-size:1.15rem;margin:4px 0 12px}
+.course table{width:100%;border-collapse:collapse;font-size:.88rem;margin:8px 0}
+.course td{border-bottom:1px solid var(--border);padding:5px 6px;vertical-align:top}
+</style>
+</head>
+<body>
+<header><h1>📚 Mes révisions</h1><p id="tagline">Choisis une matière</p></header>
+<main>
+<div id="homeScreen" class="screen"><div class="grid" id="homeGrid"></div></div>
+
+<div id="subjScreen" class="screen hidden"><button class="back" onclick="home()">← Menu</button><h2 id="subjTitle"></h2><div id="chList"></div></div>
+
+<div id="courseScreen" class="screen card hidden"><button class="back" onclick="openSubj(curSi)">← Chapitres</button><div id="courseBody" class="course"></div><button class="big" onclick="openSetup(curCi)">📝 Faire le test</button></div>
+
+<div id="setupScreen" class="screen card hidden">
+  <button class="back" onclick="openSubj(curSi)">← Chapitres</button>
+  <h2 id="setupTitle"></h2>
+  <label>Ton prénom</label><input type="text" id="nameInput" placeholder="Ton prénom...">
+  <label>Nombre de questions</label><select id="countInput"></select>
+  <button class="big" onclick="startQuiz()">Commencer le test 🚀</button>
+</div>
+
+<div id="quizScreen" class="screen card hidden">
+  <div class="qcount" id="qcount"></div>
+  <div class="progress"><div id="progBar"></div></div>
+  <div id="qBody"></div>
+  <button class="big" id="actionBtn"></button>
+  <button class="back" style="margin-top:12px" onclick="openSubj(curSi)">✕ Quitter</button>
+</div>
+
+<div id="resultScreen" class="screen card hidden">
+  <div class="scorebig" id="scoreNum"></div>
+  <div class="msg" id="scoreMsg"></div>
+  <div id="weakAreas"></div>
+  <h3>🏆 Classement</h3>
+  <div class="podium" id="podium"></div>
+  <ul class="rank" id="rankList"></ul>
+  <div class="note">Classement enregistré sur cet appareil.</div>
+  <button class="big" onclick="openSetup(curCi)">🔁 Refaire le test</button>
+  <button class="big ghost" id="courseBtn" onclick="openCourse(curCi)">📖 Relire le cours</button>
+  <button class="big ghost" onclick="home()">🏠 Menu principal</button>
+</div>
+</main>
+<script>
+const SPA=[
+{cat:'qcm',kind:'choice',q:"« El alumno »",opts:["L'élève","La couleur","Le château","Le mois"],ans:0},
+{cat:'qcm',kind:'choice',q:"« Dejar de + infinitivo »",opts:["Arrêter de","Rêver de","Profiter de","Avoir envie de"],ans:0},
+{cat:'qcm',kind:'choice',q:"« Estar hasta las narices de »",opts:["En avoir marre de","Avoir besoin de","Se sentir bien","Être en retard"],ans:0},
+{cat:'qcm',kind:'choice',q:"« Sentirse a gusto »",opts:["Se sentir bien","Se sentir mal","Avoir peur","Être en retard"],ans:0},
+{cat:'qcm',kind:'choice',q:"« Hacer un frío que pela »",opts:["Faire un froid glacial","Faire beau temps","Faire du bruit","Faire la queue"],ans:0},
+{cat:'qcm',kind:'choice',q:"« Beber como una cuba »",opts:["Boire comme un trou","Manger comme un moineau","Dormir comme un bébé","Courir comme un lapin"],ans:0},
+{cat:'qcm',kind:'choice',q:"« Estar harto/a de »",opts:["En avoir assez de","Avoir envie de","Avoir peur de","Être fier de"],ans:0},
+{cat:'qcm',kind:'choice',q:"« Seguir + gérondif »",opts:["Continuer à faire qqch","Arrêter de faire qqch","Commencer à faire qqch","Finir de faire qqch"],ans:0},
+{cat:'qcm',kind:'choice',q:"« Ser ruidoso/a »",opts:["Être bruyant(e)","Être calme","Être propre","Être sale"],ans:0},
+{cat:'qcm',kind:'choice',q:"« Llegar con retraso »",opts:["Arriver en retard","Arriver à l'heure","Partir tôt","Rester longtemps"],ans:0},
+{cat:'esfr',kind:'text',q:"Traduis en français : « Preocuparse por »",ans:["s'inquieter pour","s inquieter pour"]},
+{cat:'esfr',kind:'text',q:"Traduis en français : « Cruzar la frontera »",ans:["traverser la frontiere"]},
+{cat:'esfr',kind:'text',q:"Traduis en français : « Tener ganas de »",ans:["avoir envie de"]},
+{cat:'esfr',kind:'text',q:"Traduis en français : « Disfrutar de »",ans:["profiter de"]},
+{cat:'esfr',kind:'text',q:"Traduis en français : « Soñar con »",ans:["rever de"]},
+{cat:'esfr',kind:'text',q:"Traduis en français : « Estar preocupado/a por »",ans:["etre inquiet pour","etre inquiete pour"]},
+{cat:'esfr',kind:'text',q:"Traduis en français : « El arroyo »",ans:["le ruisseau"]},
+{cat:'esfr',kind:'text',q:"Traduis en français : « La aldea »",ans:["le hameau"]},
+{cat:'esfr',kind:'text',q:"Traduis en français : « Despertarse »",ans:["se reveiller"]},
+{cat:'esfr',kind:'text',q:"Traduis en français : « Vigilar »",ans:["surveiller"]},
+{cat:'fres',kind:'text',q:"Traduis en espagnol : « Rêver de »",ans:["sonar con"]},
+{cat:'fres',kind:'text',q:"Traduis en espagnol : « Profiter de »",ans:["disfrutar de"]},
+{cat:'fres',kind:'text',q:"Traduis en espagnol : « Envoyer »",ans:["mandar"]},
+{cat:'fres',kind:'text',q:"Traduis en espagnol : « Recevoir »",ans:["recibir"]},
+{cat:'fres',kind:'text',q:"Traduis en espagnol : « Se lever »",ans:["levantarse"]},
+{cat:'fres',kind:'text',q:"Traduis en espagnol : « Casser »",ans:["romper"]},
+{cat:'fres',kind:'text',q:"Traduis en espagnol : « La rue »",ans:["la calle"]},
+{cat:'fres',kind:'text',q:"Traduis en espagnol : « Le nom de famille »",ans:["el apellido"]},
+{cat:'fres',kind:'text',q:"Traduis en espagnol : « Le village »",ans:["el pueblo"]},
+{cat:'fres',kind:'text',q:"Traduis en espagnol : « Polluer »",ans:["contaminar"]},
+{cat:'fill',kind:'text',q:"Complète : « Es un chico que no ___ de beber alcohol. Está loco. »",ans:["para","deja"]},
+{cat:'fill',kind:'text',q:"Complète : « Estoy ___ de mis padres, no dejan de decirme que ya no trabajo. »",ans:["harto","harta"]},
+{cat:'fill',kind:'text',q:"Complète : « A mí me ___ el campo y el río. Voy a nadar. »",ans:["gusta","gustan","encanta","encantan","mola","molan","chifla","chiflan"]},
+{cat:'fill',kind:'text',q:"Complète : « Les he mandado una postal, pero hoy no he ___ carta. »",ans:["recibido"]},
+{cat:'fill',kind:'text',q:"Complète : « Cuando estoy de vacaciones, pienso mucho en mis primas que ___ en París. »",ans:["estan","están"]},
+{cat:'fill',kind:'text',q:"Complète : « Vive en el bosque. Está ___ de todos estos coches que contaminan el aire. »",ans:["harto","harta"]},
+{cat:'fill',kind:'text',q:"Complète : « Voy a irme. Ya no tengo ___. »",ans:["dinero"]},
+{cat:'fill',kind:'text',q:"Complète : « Han comprado una casa en el ___. »",ans:["campo"]},
+{cat:'fill',kind:'text',q:"Complète : « Sueño con ir a España. Me gustaría ___ del sol. »",ans:["disfrutar"]},
+{cat:'fill',kind:'text',q:"Complète : « No me siento a ___. Estoy cansado/a. »",ans:["gusto"]},
+{cat:'match',kind:'choice',q:"« el castillo » = ?",opts:["Le château","La forêt","L'autoroute","Le nom de famille"],ans:0},
+{cat:'match',kind:'choice',q:"« la carretera » = ?",opts:["La route","La forêt","Le château","Le nom de famille"],ans:0},
+{cat:'match',kind:'choice',q:"« el apellido » = ?",opts:["Le nom de famille","La forêt","Le château","L'autoroute"],ans:0},
+{cat:'match',kind:'choice',q:"« el bosque » = ?",opts:["La forêt","Le château","L'autoroute","Le nom de famille"],ans:0},
+{cat:'match',kind:'choice',q:"« el pueblo » = ?",opts:["Le village","La ville","La mer","La montagne"],ans:0},
+{cat:'match',kind:'choice',q:"« el turista » = ?",opts:["Le touriste","Le voyage","Le passeport","La valise"],ans:0},
+{cat:'match',kind:'choice',q:"« los bomberos » = ?",opts:["Les pompiers","La police","Le médecin","Le professeur"],ans:0},
+{cat:'match',kind:'choice',q:"« el código postal » = ?",opts:["Le code postal","L'adresse","Le numéro de téléphone","Le nom"],ans:0},
+{cat:'match',kind:'choice',q:"« una galleta » = ?",opts:["Un biscuit","Un bonbon","Un gâteau","Une glace"],ans:0},
+{cat:'match',kind:'choice',q:"« un caramelo » = ?",opts:["Un bonbon","Un biscuit","Un gâteau","Une glace"],ans:0}
+];
+const C=(cat,q,o)=>({cat,kind:'choice',q,opts:o,ans:0});
+const V=(q,t)=>({cat:'vf',kind:'choice',q,opts:["Vrai","Faux"],ans:t?0:1,fix:1});
+const T=(cat,q,a)=>({cat,kind:'text',q,ans:a});
+
+const ENS=[
+C('def',"L'ensemble des entiers naturels {0 ; 1 ; 2…} se note :",["ℕ","ℤ","D","ℚ"]),
+C('def',"D (décimaux) : nombres de la forme",["a/10^n avec a∈ℤ, n∈ℕ","a/b avec b non nul","a×10^n","√a"]),
+C('def',"ℚ (rationnels) : nombres de la forme",["a/b avec a∈ℤ, b∈ℤ non nul","a/10^n","a√b","a^n"]),
+C('prop',"Quelle chaîne d'inclusions est correcte ?",["ℕ ⊂ ℤ ⊂ D ⊂ ℚ ⊂ ℝ","ℕ ⊂ D ⊂ ℤ ⊂ ℚ ⊂ ℝ","ℤ ⊂ ℕ ⊂ D ⊂ ℚ ⊂ ℝ","ℕ ⊂ ℤ ⊂ ℚ ⊂ D ⊂ ℝ"]),
+C('not',"Quel symbole convient : 1024 … ℕ ?",["∈","∉","⊂","∪"]),
+C('def',"Lequel est irrationnel ?",["√2","1/4","0,5","−3"]),
+V("−5 ∈ ℕ",0),V("5,4 ∈ ℤ",0),V("√4 / 2 = 1, donc √4 / 2 ∈ ℤ",1),V("0 ∈ D",1),V("1/3 ∈ D",0),V("ℕ est inclus dans ℤ",1),
+T('comp',"Le « Z » de ℤ vient du mot allemand « … » (nombre)",["zahl","zahlen"]),
+T('comp',"Tout rationnel a une écriture décimale … (avec une période)",["periodique","une periode"]),
+T('calc',"5,2 = 52/10^n → n = ?",["1"]),
+T('calc',"0,2 = 2/10 = 1/… ?",["5"]),
+T('calc',"1/7 = 0,142857 142857… Longueur de la période ?",["6"]),
+T('calc',"x = 0,4545… → 99x = 45. x = ? (fraction irréductible)",["5/11"])];
+
+const ARI=[
+C('def',"« a est divisible par b » signifie :",["il existe un entier k tel que a = b×k","il existe un entier k tel que b = a+k","a est plus grand que b","a et b sont pairs"]),
+C('def',"21 = 3×7 : 21 est un … de 3",["multiple","diviseur","reste","quotient"]),
+C('def',"21 = 3×7 : 3 est un … de 21",["diviseur","multiple","reste","produit"]),
+C('def',"Un nombre impair s'écrit (n∈ℕ) :",["2n+1","2n","n^2","3n+1"]),
+C('calc',"Quel nombre est un multiple de 9 ?",["54","46","38","25"]),
+C('prop',"Si a = 2n, alors a^2 = 2×m avec m = …",["2n^2","n^2","4n","2n"]),
+V("La somme d'un nombre pair et d'un impair est un nombre pair",0),
+V("Le carré d'un nombre pair est un nombre pair",1),
+V("La somme de deux multiples de 5 est un multiple de 5",1),
+V("0 est un multiple de 7",1),V("7 est un diviseur de 45",0),
+T('calc',"Combien 36 a-t-il de diviseurs ?",["9"]),
+T('calc',"Plus grand diviseur de 36 différent de 36 ?",["18"]),
+T('calc',"15 = 2n+1 → n = ?",["7"]),
+T('calc',"Multiple de 4 compris entre 30 et 34 ?",["32"]),
+T('calc',"12 + 21 = 33 = 3×m → m = ?",["11"])];
+
+const INT=[
+C('int',"2≤x&lt;5 s'écrit :",["[2;5[","]2;5]","[2;5]","]2;5["]),
+C('int',"x&gt;1 s'écrit :",["]1;+∞[","[1;+∞[","]−∞;1[","]−∞;1]"]),
+C('int',"x≤2 s'écrit :",["]−∞;2]","]−∞;2[","[2;+∞[","]2;+∞["]),
+C('int',"x ∈ [3;+∞[ signifie :",["3≤x","x&lt;3","x&gt;3","x≤3"]),
+C('def',"ℝ⁺ (réels positifs) est :",["[0;+∞[","]0;+∞[","]−∞;0]","]−∞;+∞["]),
+C('def',"ℝ* (réels non nuls) est :",["]−∞;0[ ∪ ]0;+∞[","]−∞;0[","[0;+∞[","∅"]),
+C('int',"I=[2;5[ et J=]3;7] : I∩J = ?",["]3;5[","[3;5]","]3;5]","[2;7]"]),
+C('int',"I=[2;5[ et J=]3;7] : I∪J = ?",["[2;7]","]3;5[","[2;7[","]2;7]"]),
+C('int',"I=[2;7] et J=[8;10] : I∩J = ?",["∅","[7;8]","[2;10]","ℝ"]),
+C('int',"[−4;3] ∪ [1;5] = ?",["[−4;5]","[1;3]","[−4;3]","[3;5]"]),
+V("Pour exclure une valeur, le crochet est tourné vers l'intérieur",0),
+V("I∩J correspond à « I et J »",1),V("I∪J correspond à « I ou J »",1),
+V("Le crochet en +∞ est toujours ouvert",1),
+T('calc',"Amplitude de l'intervalle [3;8] ?",["5"]),
+T('calc',"[−4;3] ∩ [1;5] = [1;…] → … = ?",["3"]),
+T('calc',"]−∞;2] ∩ [−4;+∞[ = [−4;…] → … = ?",["2"])];
+
+const PUI=[
+T('calc',"2^5 = ?",["32"]),T('calc',"3^4 = ?",["81"]),T('calc',"10^5 = ?",["100000"]),
+T('calc',"10^-3 = ? (écriture décimale)",["0.001"]),T('calc',"10^-2 = ? (écriture décimale)",["0.01"]),
+T('calc',"7^0 = ?",["1"]),T('calc',"3^-2 = 1/… ?",["9"]),T('calc',"6^5 / 2^5 = 3^n → n = ?",["5"]),
+C('def',"a^-n = ?",["1/a^n","−a^n","a^n","n/a"]),
+C('prop',"5^2×5^3 = ?",["5^5","5^6","25^5","10^5"]),
+C('prop',"5^4 / 5^3 = ?",["5","5^7","5^12","1"]),
+C('prop',"(2^3)^2 = ?",["2^6","2^5","2^9","4^5"]),
+C('prop',"(a×b)^n = ?",["a^n×b^n","a×b^n","a^n+b^n","a^n×b"]),
+C('def',"2^-1 = ?",["1/2","−2","2","−1/2"]),
+V("a^0 = 0",0),V("(2^3)^2 = 2^5",0),V("a^1 = a",1),
+V("10^-m s'écrit 0,00…01 avec m chiffres après la virgule",1)];
+
+const RAC=[
+T('calc',"√49 = ?",["7"]),T('calc',"√144 = ?",["12"]),T('calc',"(√7)^2 = ?",["7"]),
+T('calc',"√((−7)^2) = ?",["7"]),T('calc',"√25 × √4 = ?",["10"]),T('calc',"√75 = a√3 → a = ?",["5"]),
+C('calc',"√20 = ?",["2√5","4√5","5√2","2√10"]),
+C('calc',"√12 = ?",["2√3","3√2","4√3","6√2"]),
+C('calc',"√50 = ?",["5√2","2√5","25√2","10√5"]),
+C('calc',"√27 = ?",["3√3","9√3","3√9","27√3"]),
+C('calc',"√32 = ?",["4√2","8√2","16√2","2√4"]),
+C('calc',"√200 = ?",["10√2","20√2","2√10","100√2"]),
+C('calc',"2√2 − 5√2 + 4√2 = ?",["√2","3√2","11√2","−√2"]),
+C('calc',"√(4/9) = ?",["2/3","4/3","2/9","16/81"]),
+C('def',"√a (a ≥ 0) est :",["le réel positif dont le carré vaut a","le double de a","a divisé par 2","le réel négatif dont le carré vaut a"]),
+C('prop',"Pour tout réel x, √(x^2) = ?",["|x|","x","−x","x^2"]),
+V("√(−4) existe dans ℝ",0),V("√9 + √16 = √25",0),
+V("√(a×b) = √a × √b (a, b positifs)",1),V("(√3)^2 = 3",1)];
+
+const K={
+ens:"<ul><li><b>ℕ</b> entiers naturels : 0 ; 1 ; 2 ; 3…</li><li><b>ℤ</b> entiers relatifs (…−2 ; −1 ; 0 ; 1…). « Z » vient de <i>Zahl</i> (allemand)</li><li><b>D</b> décimaux : a/10^n avec a∈ℤ, n∈ℕ (5,2 = 52/10)</li><li><b>ℚ</b> rationnels : a/b avec a∈ℤ, b∈ℤ non nul (1/3)</li><li><b>ℝ</b> réels, dont les irrationnels (π, √2, √3)</li></ul><p class='key'>ℕ ⊂ ℤ ⊂ D ⊂ ℚ ⊂ ℝ</p><p>∈ appartient · ∉ n'appartient pas. Un rationnel a une écriture décimale <b>périodique</b> (1/7 = 0,142857 142857… période 6) et une seule fraction irréductible. Retrouver la fraction : x=0,4545… → 100x−x=45 → x=45/99=5/11.</p>",
+ari:"<p><b>a est divisible par b</b> (b entier non nul) ⇔ il existe un entier k tel que <b>a = b×k</b>. a est un <b>multiple</b> de b ; b est un <b>diviseur</b> de a. Ex : 21 = 3×7.</p><ul><li>Diviseurs de 36 : 1 ; 2 ; 3 ; 4 ; 6 ; 9 ; 12 ; 18 ; 36</li><li>Pair : <b>2n</b> · Impair : <b>2n+1</b> (n∈ℕ)</li><li>Somme de deux multiples de n = multiple de n : n×m + n×p = n×(m+p)</li><li>Pair + impair = impair (2+5=7) · Carré d'un pair = pair : (2n)^2 = 2×2n^2</li></ul>",
+int:"<ul><li>[a;b] : a ≤ x ≤ b · amplitude = b−a</li><li>[a;+∞[ : x ≥ a · ]−∞;a] : x ≤ a</li><li>Crochet tourné vers l'<b>extérieur</b> = valeur <b>exclue</b>. Toujours ouvert en ±∞</li><li>ℝ=]−∞;+∞[ · ℝ⁺=[0;+∞[ · ℝ⁻=]−∞;0] · ℝ*=ℝ−{0}=]−∞;0[∪]0;+∞[</li></ul><p><b>I∩J</b> (intersection) = « I <b>et</b> J » : partie colorée 2 fois. <b>I∪J</b> (réunion) = « I <b>ou</b> J » : partie colorée. Ex : I=[2;5[, J=]3;7] → I∩J=]3;5[ ; I∪J=[2;7]. Sans point commun : I∩J=∅.</p>",
+pui:"<p class='key'>a^n = a×a×…×a (n fois) · a^-n = 1/a^n · a^0 = 1 (a≠0) · a^1 = a</p><ul><li>a^n × a^m = a^{n+m}</li><li>a^n / a^m = a^{n-m}</li><li>(a×b)^n = a^n × b^n · (a/b)^n = a^n / b^n</li><li>(a^n)^m = a^{n×m}</li></ul><p>Puissances de 10 : 10^5 = 100 000 · 10^-5 = 0,00001 (5 chiffres après la virgule).</p>",
+rac:"<p><b>√a</b> (a≥0) est l'<b>unique réel positif dont le carré vaut a</b> : (√a)^2 = a. √0=0 · √1=1 · √4=2 · √9=3 · √16=4 · √25=5. √(−4) n'existe pas.</p><ul><li>√(ab) = √a × √b · √(a/b) = √a / √b (b≠0)</li><li>√(a^2) = a si a≥0, −a si a&lt;0 (soit |a|)</li><li>√a + √b ≠ √(a+b) : √9+√16 = 7 mais √25 = 5</li></ul><p class='key'>Simplifier : √20 = √(4×5) = 2√5 · √12 = 2√3 · √50 = 5√2 · √27 = 3√3</p>"};
+
+const TB=s=>"<table>"+s.split(";").map(x=>{const p=x.split("|");return"<tr><td><b>"+p[0].trim()+"</b></td><td>"+p[1].trim()+"</td></tr>"}).join("")+"</table>";
+
+const IMP=[
+T('conj',"Imparfait — bailar, yo → ?",["bailaba"]),
+T('conj',"Imparfait — beber, tú → ?",["bebías"]),
+T('conj',"Imparfait — vivir, nosotros → ?",["vivíamos"]),
+T('conj',"Imparfait — ser, nosotros → ?",["éramos"]),
+T('conj',"Imparfait — ir, ellos → ?",["iban"]),
+T('conj',"Imparfait — ver, yo → ?",["veía"]),
+T('conj',"Imparfait — ser, tú → ?",["eras"]),
+T('conj',"Imparfait — ir, vosotros → ?",["ibais"]),
+T('conj',"Imparfait — ver, nosotros → ?",["veíamos"]),
+T('conj',"Imparfait — beber, vosotros → ?",["bebíais"]),
+C('conj',"Imparfait de « ir », nosotros :",["íbamos","iábamos","ibábamos","íamos"]),
+C('conj',"Imparfait de « ser », 3e personne du singulier :",["era","eraba","fue","sería"]),
+C('def',"L'imparfait sert surtout à :",["décrire une habitude ou un état dans le passé","parler du futur","donner un ordre","une action ponctuelle terminée"]),
+V("« Ir » est régulier à l'imparfait",0),
+V("« Bebía » peut être « yo » ou « él / ella »",1),
+V("Les verbes en -ar font -aba, -abas, -aba… à l'imparfait",1),
+T('fill',"Cuando (nosotros) ___ amigos, salíamos sin parar. (ser)",["éramos"]),
+T('fill',"Nuestros padres nos ___ como a niños malcriados. (reñir)",["reñían"]),
+T('fill',"En aquella época, (yo) les ___ mucho miedo a las serpientes. (tener)",["tenía"]),
+T('fill',"Mi hermano me ___ de las culebras. (hablar)",["hablaba"]),
+T('fill',"___ las diez cuando vi a un hombre por la ventana. (ser)",["eran"]),
+T('fill',"Un hombre que ___ a toda mecha hacia el centro. (correr)",["corría"]),
+T('fill',"Dos policías le ___ los talones. (pisar)",["pisaban"]),
+T('fill',"La playa ___ a tope de gente. (estar)",["estaba"]),
+T('fill',"Yo no ___ meterme en un espacio tan ocupado. (desear)",["deseaba"]),
+T('fill',"Mi hermanita siempre ___ por llamar la atención de mamá. (esforzarse)",["se esforzaba"]),
+T('fill',"Nadie la ___ aguantar. (poder)",["podía"])];
+
+const QUI=[
+C('voc',"« Llamarse » =",["s'appeler","se laver","se lever","appeler"]),
+C('voc',"« Tener catorce años » =",["avoir quatorze ans","avoir quarante ans","avoir treize ans","avoir quatre ans"]),
+C('voc',"« Un idioma » =",["une langue","une idée","un idiot","un accent"]),
+C('voc',"« Una asignatura » =",["une matière","un devoir","une classe","un professeur"]),
+C('voc',"« Hablar con fluidez » =",["parler couramment","parler doucement","parler fort","parler peu"]),
+C('voc',"« Ir a clase / al cole » =",["aller en cours / à l'école","aller au cinéma","aller à la campagne","aller au parc"]),
+C('voc',"« Viajar » =",["voyager","viser","vivre","voir"]),
+C('voc',"« Ser pequeño/a » est le contraire de :",["ser grande","ser feo/a","ser bonito/a","ser sucio/a"]),
+C('voc',"« Ser bonito/a » est le contraire de :",["ser feo/a","ser grande","ser pequeño/a","ser limpio/a"]),
+T('fres',"Traduis en espagnol : « une langue »",["un idioma"]),
+T('fres',"Traduis en espagnol : « un surnom »",["un apodo"]),
+T('fres',"Traduis en espagnol : « la Suisse »",["Suiza"]),
+T('fres',"Traduis en espagnol : « l'Allemagne »",["Alemania"]),
+T('fres',"Traduis en espagnol : « le Maroc »",["Marruecos"]),
+T('fres',"Traduis en espagnol : « les États-Unis »",["Estados Unidos","los Estados Unidos"]),
+T('esfr',"Traduis en français : « Lo que más me gusta »",["ce que j'aime le plus","ce qui me plait le plus"]),
+T('esfr',"Traduis en français : « Aprender la mar de cosas »",["apprendre plein de choses"])];
+
+const BCN=[
+C('voc',"« La calidad de vida » =",["la qualité de vie","la santé publique","le climat","la gastronomie"]),
+C('voc',"« La salud pública » =",["la santé publique","la culture","l'éducation","le transport"]),
+C('voc',"« El transporte » =",["le transport","le climat","les parcs","les plages"]),
+C('voc',"« El clima » =",["le climat","la culture","les loisirs","l'éducation"]),
+C('voc',"« Las playas » =",["les plages","les parcs","les tapas","les écoles"]),
+C('voc',"« La gastronomía » =",["la gastronomie","l'astronomie","l'économie","la géographie"]),
+T('esfr',"Traduis en français : « Los parques »",["les parcs"]),
+T('esfr',"Traduis en français : « El ocio »",["les loisirs","le loisir"]),
+T('fres',"Traduis en espagnol : « la culture »",["la cultura"]),
+T('fres',"Traduis en espagnol : « l'éducation »",["la educación"]),
+T('fres',"Traduis en espagnol : « la vie nocturne »",["la vida nocturna"])];
+
+const SEG=[
+C('voc',"« Dar la vuelta al mundo » =",["faire le tour du monde","donner la main","tourner en rond","faire demi-tour"]),
+C('voc',"« Dos días seguidos » =",["deux jours de suite","deux jours après","deux jours avant","deux jours entiers"]),
+C('voc',"« ¡Cierra el pico! » =",["Ferme-la !","Ouvre !","Viens ici !","Bravo !"]),
+C('voc',"« Hacer tonterías » =",["faire des bêtises","faire des courses","faire du sport","faire la fête"]),
+C('voc',"« Estar patas arriba » =",["être sens dessus dessous","être à pied","être en haut","être content"]),
+C('voc',"« Luchar como una fiera » =",["se battre comme un fauve","courir comme un lapin","dormir comme un loir","manger comme un ogre"]),
+C('voc',"« Las zapatillas de deporte » =",["les baskets","les chaussettes","les pantoufles","les sandales"]),
+C('voc',"« ¿Qué tiempo hace? » =",["Quel temps fait-il ?","Quelle heure est-il ?","Quel âge as-tu ?","Où vas-tu ?"]),
+C('voc',"« Son las ocho » =",["Il est huit heures","Ils sont huit","J'ai huit ans","C'est le huit"]),
+C('voc',"« ¿A quién le toca? » =",["C'est à qui le tour ?","Qui est là ?","À qui parles-tu ?","Qui a gagné ?"]),
+T('esfr',"Traduis en français : « Tocar la guitarra »",["jouer de la guitare"]),
+T('esfr',"Traduis en français : « Tener novio/a »",["avoir un petit ami","avoir une petite amie","avoir un copain","avoir une copine"]),
+T('fres',"Traduis en espagnol : « arriver en retard »",["llegar tarde","llegar con retraso"]),
+T('fill',"Complète : « ___ a una persona » (aider quelqu'un)",["ayudar"]),
+V("« Empezar a + infinitivo » signifie « commencer à »",1),
+V("« Tengo el corazón roto » signifie « j'ai le cœur brisé »",1),
+V("« Sigo pensando en ti » signifie « j'ai arrêté de penser à toi »",0)];
+
+Object.assign(K,{
+esv:"<p>Ta fiche de vocabulaire (27 points), remise au propre :</p>"+TB(`el color, los colores|la couleur, les couleurs;el alumno, el estudiante|l'élève, l'étudiant;quedarse en casa / en la ciudad|rester à la maison / en ville;aprender, escuchar, oír|apprendre, écouter, entendre;beber, comer, trabajar|boire, manger, travailler;entender, comprender|comprendre;dejar|laisser, abandonner, quitter;escribir, dibujar, pintar|écrire, dessiner, peindre;querer a sus padres, amar a sus amigos|aimer ses parents, ses amis;salir, llegar, estar enfermo/a (malo/a)|sortir, arriver, être malade;vigilar a una persona, jugar con una persona|surveiller, jouer avec qqn;llorar, gritar, estar harto/a de…|pleurer, crier, en avoir assez de;pensar en alguien / en algo|penser à qqn / à qqch;soñar con…|rêver de;el mar, la ola, la arena, el sol|la mer, la vague, le sable, le soleil;irse, marcharse|partir;estar cansado/a, triste, contento/a|être fatigué, triste, content;preocuparse por…|se faire du souci pour;tener la mar de / un montón de amigos|avoir plein d'amis;hacer mal tiempo / buen tiempo|faire mauvais / beau temps;una bici, contaminar|un vélo, polluer;hacer ruido|faire du bruit;un gran castillo, una gran familia|un grand château, une grande famille;un pastel, una galleta, un caramelo|un gâteau, un biscuit, un bonbon;la ciudad, el campo|la ville, la campagne;seguir + gerundio|continuer à…;me gustaría, te gustaría, le gustaría|j'aimerais, tu aimerais, il aimerait;me encanta/n, te encanta/n, le encanta/n|j'adore, tu adores, il adore;viajar, el viaje, el turista|voyager, le voyage, le touriste;ir al extranjero|partir à l'étranger;estar limpio/a ≠ estar sucio/a|être propre ≠ être sale;recibir ≠ mandar|recevoir ≠ envoyer;celebrar el cumpleaños|fêter l'anniversaire;una carta, el cartero, una postal|une lettre, le facteur, une carte postale;cruzar la frontera|traverser la frontière;dejar de + infinitivo|arrêter de…;romper → estar roto/a|casser, briser → être cassé;la policía, el policía|la police, le policier;despertarse, levantarse, esperar|se réveiller, se lever, attendre;los bomberos, llamar a los bomberos|les pompiers, appeler les pompiers;ir a correos|aller à la poste;la dirección, el código postal|l'adresse, le code postal;comprar, vender, pagar|acheter, vendre, payer;el nombre, el apellido|le prénom, le nom de famille;mi, tu, su habitación|ma, ta, sa chambre;nuestra, vuestra, su habitación|notre, votre, leur chambre;el bosque, el poeta|la forêt, le poète;la calle, la carretera, la autopista|la rue, la route, l'autoroute;el parque, el cine, el banco|le parc, le cinéma, la banque;un mes, los meses del año|un mois, les mois de l'année`),
+imp:"<p class='key'>Imparfait = habitude, description ou état dans le passé.</p><p>Ordre : yo, tú, él/ella, nosotros, vosotros, ellos.</p><p><b>Réguliers</b> : -ar → <b>-aba, -abas, -aba, -ábamos, -abais, -aban</b> · -er / -ir → <b>-ía, -ías, -ía, -íamos, -íais, -ían</b></p>"+TB("bailar|bailaba, bailabas, bailaba, bailábamos, bailabais, bailaban;beber|bebía, bebías, bebía, bebíamos, bebíais, bebían;vivir|vivía, vivías, vivía, vivíamos, vivíais, vivían")+"<p><b>Irréguliers (seulement 3)</b> :</p>"+TB("ir|iba, ibas, iba, íbamos, ibais, iban;ser|era, eras, era, éramos, erais, eran;ver|veía, veías, veía, veíamos, veíais, veían"),
+qui:"<p>¿Quién soy? Me retrato a mí mismo/a — vocabulaire clé :</p>"+TB(`llamarse|s'appeler;un apodo|un surnom;ir a clase / al cole|aller en cours / à l'école;una asignatura|une matière;tener catorce años|avoir quatorze ans;saber mucho de algo|s'y connaître en qqch;vivir en una ciudad / un pueblo|vivre dans une ville / un village;hablar con fluidez|parler couramment;un idioma|une langue;ser pequeño/a ≠ grande|petit ≠ grand;ser bonito/a ≠ feo/a|beau ≠ laid;viajar, los viajes|voyager, les voyages;lo que más me gusta…|ce que j'aime le plus…;a mí me mola…|j'adore…;ser estupendo/a|être génial(e);aprender la mar de cosas|apprendre plein de choses;las cualidades, los defectos|les qualités, les défauts`)+"<p>Pays : Suiza, Inglaterra, Bélgica, Estados Unidos, Marruecos, Argelia, Túnez, Alemania, Japón, México, Italia, España, Portugal.</p>",
+bcn:"<p class='key'>🚧 Chapitre en cours — ton cahier n'est pas terminé.</p><p><b>¿Vivirías en la ciudad de Barcelona?</b> (Desafíos y transiciones). Les 10 thèmes :</p>"+TB(`la calidad de vida|la qualité de vie;la salud pública|la santé publique;el transporte (24/24)|le transport (24h/24);el clima|le climat;las playas|les plages;los parques|les parcs;la cultura|la culture;la educación|l'éducation;la gastronomía|la gastronomie;el ocio|les loisirs;la vida nocturna|la vie nocturne`)+"<p>Idées de ton cahier : una gran ciudad · mucho encanto · disfrutar de la playa casi todo el año.</p>",
+seg:"<p>La segunda clase — vocabulaire à retenir :</p>"+TB(`dar la vuelta al mundo|faire le tour du monde;ayudar a una persona|aider quelqu'un;dos veces / días seguidos|deux fois / jours de suite;¡cierra el pico!|ferme-la !;hacer tonterías|faire des bêtises;tener novio/a|avoir un(e) petit(e) ami(e);llegar tarde|arriver en retard;coger frío, una enfermedad|attraper froid, une maladie;tocar la guitarra|jouer de la guitare;¿qué tiempo hace?|quel temps fait-il ?;son las ocho|il est huit heures;empezar a + infinitivo|commencer à…;no… sino…|ne… mais…;son ruidosos|ils sont bruyants;llamar a la policía|appeler la police;estar hasta las narices de…|en avoir marre de…;luchar como una fiera|se battre comme un fauve;estar patas arriba|être sens dessus dessous;tengo el corazón roto|j'ai le cœur brisé;¿a quién le toca?|c'est à qui le tour ?;sigo pensando en ti|je continue de penser à toi;las zapatillas de deporte|les baskets;mi hermano/a mayor|mon frère / ma sœur aîné(e)`)});
+
+const ESP=[
+{id:'es1',t:'Vocabulaire & expressions (27 fiches)',b:SPA,c:K.esv},
+{id:'es2',t:"L'imparfait de l'indicatif",b:IMP,c:K.imp},
+{id:'es3',t:'¿Quién soy? Me retrato a mí mismo/a',b:QUI,c:K.qui},
+{id:'es4',t:'🚧 Barcelona — Desafíos y transiciones (en cours)',b:BCN,c:K.bcn},
+{id:'es5',t:'La segunda clase (vocabulaire)',b:SEG,c:K.seg},
+{id:'esall',t:'🎯 Contrôle général espagnol (tout mélangé)',b:[].concat(SPA,IMP,QUI,BCN,SEG)}];
+
+const MATHS=[
+{id:'ens',t:'Ensembles de nombres',b:ENS,c:K.ens},
+{id:'ari',t:'Arithmétique',b:ARI,c:K.ari},
+{id:'int',t:'Intervalles',b:INT,c:K.int},
+{id:'pui',t:'Puissances',b:PUI,c:K.pui},
+{id:'rac',t:'Racine carrée',b:RAC,c:K.rac},
+{id:'mall',t:'🎯 Contrôle général (tout mélangé)',b:[].concat(ENS,ARI,INT,PUI,RAC)}];
+
+/* ===== ANGLAIS & HISTOIRE ===== */
+const ENGB=[
+C('def',"Le past perfect se forme avec :",["had + participe passé","have/has + participe passé","was/were + V-ing","did + base verbale"]),
+C('def',"Le past perfect sert à parler d'un événement :",["antérieur à un autre événement passé","du futur proche","qui se passe en ce moment","sans lien avec le passé"]),
+C('def',"Le past simple correspond en français à :",["le prétérit","le futur","le subjonctif","l'impératif"]),
+C('def',"« was / were + V-ing » exprime :",["une action en cours quand une autre survient","un événement antérieur","le futur","un ordre"]),
+C('trad',"« Je n'avais jamais vu La Belle au Bois Dormant » se traduit :",["I had never seen Sleeping Beauty","I never see Sleeping Beauty","I have never saw Sleeping Beauty","I was never seeing Sleeping Beauty"]),
+C('irr',"Prétérit de « eat » :",["ate","eated","eaten","eat"]),
+C('irr',"Participe passé de « fall » :",["fallen","fell","falled","felled"]),
+V("Le past perfect utilise l'auxiliaire « have » au past simple (had)",1),
+V("« was + V-ing » exprime un événement antérieur à un autre",0),
+V("Dans « The giant had already rescued the princess when the prince arrived », le sauvetage a eu lieu avant l'arrivée du prince",1),
+T('irr',"Prétérit de « think » →",["thought"]),
+T('irr',"Participe passé de « see » →",["seen"]),
+T('irr',"Prétérit de « hear » →",["heard"]),
+T('grm',"The dragon ___ enjoy kidnapping princesses. (négatif, past simple)",["didn't","did not"]),
+T('grm',"Why ___ the witch poison Snow White? (past simple)",["did"]),
+T('grm',"Why ___ Hansel and Gretel walk through the woods alone?",["did"]),
+T('grm',"The giant ___ already rescued the princess when the prince arrived.",["had"]),
+T('grm',"Before Snow White came to see her, the witch ___ already poisoned the apple.",["had"]),
+T('grm',"They realised their parents ___ trapped them. (antérieur)",["had"]),
+T('grm',"She looked out the window after she ___ put down her brush.",["had"]),
+T('grm',"The little pigs ___ listen to their mother. (négatif, past simple)",["didn't","did not"]),
+T('grm',"The evil queen ___ jealous of her beauty. (feel, past simple)",["felt"]),
+T('grm',"The ogre ___ having breakfast when the little boy arrived.",["was"]),
+T('grm',"As he ___ walking towards the enchanted forest, he heard a call for help.",["was"]),
+T('grm',"The Three Little Pigs ___ preparing the fire when the wolf arrived.",["were"]),
+T('grm',"The princess was brushing her hair when Prince Charming ___ her voice. (hear)",["heard"]),
+T('grm',"Cinderella ___ away at midnight. (run, past simple)",["ran"]),
+T('grm',"Now she ___ her shoe. (lose, present perfect)",["has lost"]),
+T('grm',"Goldilocks ___ the bears' food because she was hungry. (eat, past simple)",["ate"]),
+T('grm',"Now she ___ asleep in their bed. (fall, present perfect)",["has fallen"]),
+T('grm',"Modern artists ___ to twist the stories. (decide, present perfect)",["have decided"])];
+
+const H1=[
+C('def',"L'Antiquité va de :",["-3500 à 476","476 à 1492","1492 à 1789","1789 à nos jours"]),
+C('def',"Le Moyen Âge va de :",["476 à 1492","-3500 à 476","1492 à 1789","1789 à nos jours"]),
+C('def',"L'époque moderne va de :",["1492 à 1789","476 à 1492","1789 à nos jours","-3500 à 476"]),
+C('def',"L'époque contemporaine commence en :",["1789","1492","476","1914"]),
+C('def',"Combien y a-t-il de grandes périodes historiques dans ton cours ?",["4","3","5","6"]),
+T('date',"Année de la chute de l'Empire romain d'Occident ?",["476"]),
+T('date',"Année de la découverte de l'Amérique ?",["1492"]),
+T('date',"Année de la Révolution française ?",["1789"]),
+C('date',"Quel événement marque le début de l'Antiquité (vers -3500) ?",["l'invention de l'écriture","la chute de Rome","la découverte de l'Amérique","la Révolution française"]),
+C('date',"Quel événement marque la fin du Moyen Âge ?",["la découverte de l'Amérique","la chute de l'Empire romain d'Occident","la Révolution française","l'invention de l'écriture"]),
+C('date',"Quel événement sépare l'époque moderne de l'époque contemporaine ?",["la Révolution française","la chute de Rome","l'invention de l'écriture","la découverte de l'Amérique"]),
+V("Le découpage en périodes historiques est un découpage discutable",1),
+V("La chute de l'Empire romain d'Occident sépare le Moyen Âge de l'époque moderne",0)];
+
+const HA=[
+C('inst',"L'Ecclésia est :",["l'assemblée des citoyens","le tribunal populaire","le conseil des 500","le trésor de la ligue"]),
+C('inst',"La Boulè est composée de :",["500 citoyens (les bouleutes)","6000 citoyens","40 citoyens","tous les habitants"]),
+C('inst',"L'Héliée est :",["un tribunal (rôle judiciaire)","l'assemblée qui vote la guerre","un conseil de 500 membres","une monnaie"]),
+C('inst',"Comment sont désignés les 6000 juges de l'Héliée ?",["tirés au sort","élus","héréditaires","nommés par Périclès"]),
+C('inst',"Que vote l'Ecclésia ?",["les lois, la guerre, le budget et l'ostracisme","seulement les impôts","les jugements","l'ordre du jour de la Boulè"]),
+C('inst',"Qui prépare l'ordre du jour de l'Ecclésia ?",["la Boulè","l'Héliée","Sparte","les esclaves"]),
+T('inst',"Combien de fois par an l'Ecclésia se réunit-elle ?",["40"]),
+T('inst',"Combien de citoyens siègent à l'Héliée ?",["6000"]),
+T('inst',"Âge minimum (en années) des juges de l'Héliée ?",["30"]),
+C('qui',"Qui est Thucydide ?",["l'auteur de « La guerre du Péloponnèse »","le chef d'Athènes","un roi de Sparte","un esclave"]),
+C('qui',"Qui dirige Athènes au Ve siècle av. J.-C. ?",["Périclès","Auguste","Octave","Constantin"]),
+C('doc',"Selon Thucydide, « sous le nom de démocratie, c'était en fait … qui gouvernait »",["le premier citoyen","le peuple entier","les esclaves","les Spartiates"]),
+C('doc',"Que permet l'indemnité mentionnée sous le schéma ?",["aux plus pauvres de participer","d'échapper à l'impôt","de devenir roi","de voter deux fois"]),
+V("Les femmes, les esclaves et les métèques ne participent pas à la démocratie athénienne",1),
+V("Toutes les personnes vivant à Athènes sont citoyens",0),
+V("Les magistratures sont payées, donc accessibles à tous",0),
+T('inst',"Combien de fois Périclès a-t-il été élu (d'après ton cahier) ?",["15"])];
+
+const HB=[
+C('cause',"Où le trésor de la ligue est-il déplacé ?",["à Athènes","à Sparte","à Rome","à Mégare"]),
+C('cause',"Que fait Périclès du trésor de la ligue ?",["il finance des monuments qui embellissent Athènes","il le rend aux cités","il le brûle","il le donne à Sparte"]),
+C('cause',"Quelle monnaie Athènes impose-t-elle aux cités alliées ?",["la monnaie athénienne","la monnaie de Sparte","la monnaie romaine","le troc"]),
+C('cause',"Athènes est donc considérée comme :",["impérialiste et thalassocratique","pacifiste et agricole","oligarchique et isolée","républicaine et romaine"]),
+C('notion',"Une puissance qui domine grâce à sa flotte est :",["thalassocratique","oligarchique","théocratique","démocratique"]),
+C('notion',"Une politique qui cherche à dominer d'autres peuples est :",["impérialiste","pacifiste","neutre","fédéraliste"]),
+V("Le trésor de la ligue de Délos est déplacé de Délos vers Athènes",1),
+V("Périclès utilise le trésor uniquement pour protéger les alliés",0),
+V("Les monuments d'Athènes provoquent la jalousie de ses ennemis",1),
+T('comp',"« Par quels ___ Athènes impose sa domination ? » : mot-clé de la consigne (m…)",["moyens"]),
+T('comp',"Le trésor de la ligue était d'abord à … (D…)",["Délos","Delos"])];
+
+const HC=[
+C('cause',"Quelle cité Périclès interdit-il de commercer en mer Égée ?",["Mégare","Samos","Milet","Sparte"]),
+C('date',"En quelle année Samos se révolte-t-elle contre Athènes ?",["440 av. J.-C.","411 av. J.-C.","431 av. J.-C.","404 av. J.-C."]),
+C('cause',"Samos était gouvernée par :",["une oligarchie","une démocratie","un empereur","la République"]),
+C('cause',"Que livre Samos après sa défaite ?",["sa flotte","son trésor sacré","ses esclaves","ses dieux"]),
+C('cause',"Quel régime est imposé à Samos par Athènes ?",["une démocratie","une oligarchie","un principat","une monarchie"]),
+C('qui',"Qui déclenche la guerre du Péloponnèse contre Athènes ?",["Sparte","Rome","Samos","Mégare"]),
+C('cause',"Une cause de la contestation d'Athènes est :",["l'usage du trésor commun pour embellir Athènes","la baisse des impôts","l'abolition de la monnaie","l'absence de flotte"]),
+T('def',"Nom de l'impôt versé par les cités de la ligue de Délos ?",["tribut"]),
+T('date',"La guerre du Péloponnèse commence en (av. J.-C.) :",["431"]),
+T('date',"La guerre du Péloponnèse se termine en (av. J.-C.) :",["404"]),
+T('date',"Année où la démocratie est renversée une première fois à Athènes (av. J.-C.) :",["411"]),
+V("Toutes les cités de la ligue acceptent volontiers de payer le tribut",0),
+V("Athènes ne connaît aucune contestation de sa domination",0)];
+
+const HM=[
+C('meth',"Première étape pour présenter un document :",["identifier sa nature exacte","le résumer","donner la source","donner son avis"]),
+C('meth',"Que faut-il indiquer sur l'auteur ?",["nom, nationalité, époque, profession","sa couleur préférée","son âge exact","seulement son prénom"]),
+C('meth',"La « source » d'un document est :",["le lieu ou l'ouvrage où on peut le consulter","son auteur","sa date","son résumé"]),
+C('meth',"Si la consigne ne donne pas explicitement les parties, il faut :",["identifier le mot qui permet de faire les parties","répondre en une phrase","recopier le document","ignorer la consigne"]),
+C('meth',"Dans « vous montrerez par quels moyens… », le mot-clé est :",["moyens","montrerez","vous","Athènes"]),
+V("Les verbes et les mots de liaison de la consigne donnent le nombre et l'ordre des parties",1),
+V("Il faut recopier tout le document pour le présenter",0),
+T('meth',"Doc 1 : quel est l'auteur du texte sur Périclès ?",["Thucydide"]),
+T('meth',"Doc 1 : dans quel ouvrage trouve-t-on ce texte ? (La guerre du …)",["Péloponnèse","du Péloponnèse"])];
+
+const HN=[
+C('notion',"Oligarchie :",["régime où un petit groupe détient le pouvoir","régime où tous votent","pouvoir d'un seul","pouvoir des dieux"]),
+C('notion',"Thalassocratie :",["puissance qui domine par sa flotte","puissance qui domine par son armée de terre","pouvoir des prêtres","pouvoir des riches"]),
+C('notion',"Impérialisme :",["volonté de dominer d'autres peuples","volonté de rester neutre","système de vote","religion d'État"]),
+C('notion',"Ligue de Délos :",["alliance de cités grecques dirigée par Athènes","armée romaine","tribunal d'Athènes","assemblée de Sparte"]),
+C('notion',"Démocratie :",["pouvoir du peuple","pouvoir des riches","pouvoir des dieux","pouvoir des soldats"]),
+C('notion',"Citoyen (à Athènes) :",["homme libre qui participe à la vie politique","tout habitant d'Athènes","un esclave affranchi","un étranger"]),
+C('notion',"Cité :",["État grec indépendant","empire","monnaie","assemblée"]),
+C('notion',"République romaine : pouvoir partagé entre :",["citoyens, magistrats et Sénat","un seul empereur","les dieux","les esclaves"]),
+C('notion',"Principat :",["pouvoir politique d'un seul homme, l'Empereur","pouvoir du Sénat","pouvoir du peuple","pouvoir des prêtres"]),
+C('notion',"Princeps signifie en latin :",["le premier","le roi","le dieu","le citoyen"]),
+C('notion',"Augustus est un nom :",["auparavant réservé aux dieux","d'esclave","de général grec","de ville"]),
+V("Une oligarchie est le pouvoir de tout le peuple",0),
+V("La thalassocratie repose sur la maîtrise de la mer",1),
+T('notion',"Régime où un petit groupe détient le pouvoir : une … (o…)",["oligarchie"]),
+T('notion',"Puissance qui domine par sa flotte : une … (t…)",["thalassocratie"]),
+T('notion',"Impôt payé par les cités de la ligue de Délos :",["tribut"])];
+
+const HR=[
+T('date',"Année de l'assassinat de Jules César (av. J.-C.) :",["44"]),
+T('date',"Année de la bataille d'Actium (av. J.-C.) :",["31"]),
+T('date',"Année où Octave devient Princeps (av. J.-C.) :",["27"]),
+T('date',"Début de la République romaine (av. J.-C.) :",["509"]),
+C('qui',"Qui est l'héritier de Jules César ?",["Octave","Marc Antoine","Périclès","Constantin"]),
+C('qui',"Qui est le principal rival d'Octave ?",["Marc Antoine","Périclès","Thucydide","Constantin"]),
+C('qui',"Après quelle bataille Octave accède-t-il seul au pouvoir ?",["Actium","Marathon","Salamine","Sparte"]),
+C('cause',"Pourquoi Octave transforme-t-il le régime en 27 av. J.-C. ?",["les institutions de la République ne sont plus adaptées à un territoire aussi vaste","le Sénat a disparu","les Grecs ont conquis Rome","les esclaves ont voté"]),
+C('cause',"Comment Octave maintient-il les apparences républicaines ?",["il conserve le Sénat et les magistrats (pouvoirs amoindris)","il abolit tout","il se proclame dieu unique","il interdit le Sénat"]),
+C('cause',"Le contrôle des provinces est :",["partagé entre l'empereur et le Sénat","réservé aux esclaves","confié à Sparte","supprimé"]),
+C('def',"Le nom « Augustus » confirme :",["le caractère sacré de sa personne","sa défaite","son origine grecque","son âge"]),
+V("Octave supprime complètement le Sénat et les magistrats",0),
+V("À partir de 27 av. J.-C., on parle de principat pour le pouvoir d'un seul homme",1),
+V("Augustus était un nom auparavant réservé aux dieux",1)];
+
+Object.assign(K,{
+eng:"<p class='key'>Past simple (prétérit) : verbe + -ed (ou forme irrégulière). Événement du passé, <b>terminé, révolu</b>, sans incidence sur le présent.</p><ul><li><b>Négatif / question</b> : <b>didn't</b> / <b>did</b> + base verbale. The dragon didn't enjoy kidnapping princesses. · Why did the witch poison Snow White?</li><li><b>Past perfect</b> = <b>had</b> (have au past simple) <b>+ participe passé</b>. Uniquement pour un événement <b>antérieur</b> à un autre événement passé.<br>Frise : past perfect → past simple → today.<br>The giant <b>had</b> already rescued the princess when the prince <b>arrived</b>.</li><li><b>Past continuous</b> = <b>was / were + V-ing</b> : action en cours quand une autre survient. The ogre <b>was having</b> breakfast when the little boy <b>arrived</b>.</li><li><b>Present perfect</b> = <b>have / has + participe passé</b> : lien avec le présent. Cinderella ran away at midnight but now she <b>has lost</b> her shoe.</li></ul><p><b>Verbes irréguliers</b> (prétérit · participe passé) :</p>"+TB("run|ran · run;lose|lost · lost;eat|ate · eaten;fall|fell · fallen;hear|heard · heard;see|saw · seen;feel|felt · felt;put|put · put;think|thought · thought;leave|left · left;get|got · got"),
+h1:"<p class='key'>Le découpage du temps en 4 grandes périodes (un découpage discutable)</p>"+TB("Antiquité|de -3500 (invention de l'écriture) à 476 (chute de l'Empire romain d'Occident);Moyen Âge|de 476 à 1492 (découverte de l'Amérique);Époque moderne|de 1492 à 1789 (Révolution française);Époque contemporaine|de 1789 à nos jours")+"<p>Consigne : sur la frise, placer les 4 périodes, les <b>dates charnières</b> et les événements qui y correspondent.</p>",
+ha:"<p class='key'>Problématique : pourquoi la démocratie athénienne et l'Empire romain restent-ils des modèles politiques et culturels aujourd'hui ?</p><p><b>I. L'empreinte athénienne en Méditerranée au Ve siècle av. J.-C.</b><br><b>A. Une cité démocratique qui fait exception dans le monde grec</b> — Point de passage : « Périclès et la démocratie athénienne ».</p><p><b>Doc 1</b> (p. 30) : texte de <b>Thucydide</b>, tiré de « La guerre du Péloponnèse », qui raconte comment Périclès dirige Athènes. <b>Doc 2</b> (p. 29) : schéma des institutions.</p><p><b>Les institutions</b> :</p><ul><li><b>Ecclésia</b> : assemblée des citoyens, réunie <b>40 fois par an</b> ; elle vote les lois, la guerre, le budget et l'ostracisme.</li><li><b>Boulè</b> : <b>500 citoyens</b> (les bouleutes), réunis au bouleutérion ; elle prépare l'ordre du jour de l'Ecclésia et les lois.</li><li><b>Héliée</b> : tribunal (rôle judiciaire) de <b>6000 citoyens de plus de 30 ans tirés au sort</b>.</li></ul><p><b>Les avantages</b> : les citoyens participent (Ecclésia) et à la justice (Héliée) ; une <b>indemnité</b> permet aux plus pauvres de participer.</p><p><b>Les limites</b> :</p><ul><li>Seuls les <b>citoyens</b> participent : les <b>femmes, les esclaves et les métèques</b> sont exclus.</li><li>Les magistratures, <b>non rétribuées</b>, restent aux mains des <b>plus riches</b> ; la corruption par l'argent est présente.</li><li>Périclès a beaucoup de pouvoir : « sous le nom de démocratie, c'était en fait le <b>premier citoyen</b> qui gouvernait » (élu 15 fois).</li><li>Égalité devant la loi, mais pas réellement dans la vie politique.</li></ul>",
+hb:"<p class='key'>B. Une cité qui impose peu à peu sa domination sur le monde grec</p><p>Consigne : montrer par quels <b>moyens</b> Athènes impose sa domination sur les autres cités de la <b>ligue de Délos</b>.</p><ul><li><b>La monnaie</b> : Athènes impose l'usage de sa monnaie ; la monnaie étrangère s'échange contre la monnaie athénienne.</li><li><b>Le trésor de la ligue</b> est transféré de Délos à Athènes. Périclès prétend protéger les alliés, mais l'utilise pour construire des <b>monuments</b> et des statues.</li><li>Ces monuments provoquent la <b>jalousie</b> des ennemis d'Athènes.</li></ul><p>Athènes est donc une puissance <b>impérialiste</b> et <b>thalassocratique</b>.</p>",
+hc:"<p class='key'>C. Une cité contestée dont la démocratie finit par être renversée</p><p>Consigne : expliquer les <b>raisons</b> pour lesquelles les cités grecques contestent la domination athénienne.</p><ul><li>Périclès interdit à <b>Mégare</b> de commercer en mer Égée : cette cité, puis d'autres, se soulèvent.</li><li>Le déplacement du trésor vers Athènes et son usage pour l'embellir créent des <b>tensions</b> : certaines cités refusent de payer le <b>tribut</b> (impôt finançant la ligue).</li><li><b>440 av. J.-C.</b> : Samos refuse l'intervention d'Athènes dans son conflit avec Milet. Vaincue, elle livre sa flotte et reçoit une <b>démocratie</b> alors qu'elle était gouvernée par une <b>oligarchie</b>.</li><li><b>Sparte</b> déclenche la <b>guerre du Péloponnèse</b> (<b>431 – 404 av. J.-C.</b>). En <b>411 av. J.-C.</b>, la démocratie est renversée une première fois à Athènes, puis rétablie (404 av. J.-C. dans ton cahier).</li></ul>",
+hm:"<p class='key'>Présenter un document en histoire</p><ol><li>Identifier la <b>nature</b> exacte du document</li><li>Présenter l'<b>auteur</b> (nom, nationalité, époque, profession)</li><li>Donner sa <b>date</b> et le <b>contexte</b> (ce qui s'est passé à ce moment-là)</li><li><b>Résumer</b> le contenu en quelques lignes</li><li>Mentionner la <b>source</b> (lieu ou ouvrage où on peut le consulter)</li></ol><p class='key'>Analyser une consigne pour organiser sa réponse</p><ul><li><b>1er cas</b> : la consigne donne explicitement les parties → être attentif aux <b>verbes</b> et aux <b>mots de liaison</b> (nombre et ordre des parties).</li><li><b>2e cas</b> : elle ne les donne pas → identifier le <b>mot de la consigne</b> qui permet de faire les parties (ici « moyens »).</li></ul><p>Exemple, Doc 1 : nature = un texte ; auteur = Thucydide ; source = « La guerre du Péloponnèse ».</p>",
+hn:"<p><b>Athènes</b> :</p>"+TB("Cité|État grec indépendant;Démocratie|pouvoir exercé par le peuple (les citoyens);Citoyen|à Athènes, homme libre qui participe à la vie politique (ni femmes, ni esclaves, ni métèques);Ligue de Délos|alliance de cités grecques dirigée par Athènes;Impérialisme|politique visant à dominer d'autres peuples;Thalassocratie|puissance qui domine grâce à sa flotte;Oligarchie|régime où un petit groupe détient le pouvoir;Tribut|impôt payé par les cités de la ligue")+"<p><b>Rome (partie A)</b> :</p>"+TB("République|509 – 27 av. J.-C. : pouvoir partagé entre citoyens, magistrats et Sénat;Princeps|« le premier » en latin : pouvoir politique suprême;Augustus|nom auparavant réservé aux dieux (caractère sacré);Principat|pouvoir politique d'un seul homme, l'Empereur")+"<p>🚧 Les autres notions de Rome (limes, colonie, romanisation, persécutions…) viendront avec la suite du cours.</p>",
+hr:"<p class='key'>🚧 Partie A seulement — la suite (B et C) viendra plus tard.</p><p><b>II. L'empreinte romaine en Méditerranée (Ier s. av. J.-C. – IVe s. ap. J.-C.)</b><br><b>A. Un empire qui naît de crises et du renversement de la République</b> — « Le principat d'Auguste et la naissance de l'Empire romain ».</p><ul><li><b>44 av. J.-C.</b> : Jules César est assassiné. Son héritier <b>Octave</b> lutte contre les partisans de la <b>République</b> (509 – 27 av. J.-C.) et contre son rival <b>Marc Antoine</b>.</li><li><b>31 av. J.-C.</b> : Marc Antoine est vaincu à la <b>bataille d'Actium</b> → Octave accède seul au pouvoir.</li><li><b>27 av. J.-C.</b> : les institutions de la République ne sont plus adaptées à un territoire aussi vaste. Octave devient le <b>Princeps</b> et est nommé <b>Augustus</b> par le Sénat. On parle de <b>principat</b> : pouvoir d'un seul homme, l'Empereur, à la tête de l'Empire romain.</li><li>Il maintient les <b>apparences républicaines</b> : le Sénat et les magistrats sont conservés (pouvoirs amoindris) et le contrôle des provinces est partagé avec le Sénat.</li></ul>"});
+
+const ENG=[{id:'en1',t:'Past simple, past perfect & present perfect',b:ENGB,c:K.eng}];
+const HIS=[
+{id:'h1',t:'H1 — La périodisation en histoire',b:H1,c:K.h1},
+{id:'h2a',t:'H2 · I.A — Athènes : une démocratie exceptionnelle',b:HA,c:K.ha},
+{id:'h2b',t:'H2 · I.B — Athènes impose sa domination',b:HB,c:K.hb},
+{id:'h2c',t:'H2 · I.C — Une cité contestée',b:HC,c:K.hc},
+{id:'hm',t:'🛠 Méthode : présenter un document, analyser une consigne',b:HM,c:K.hm},
+{id:'hn',t:'📌 Notions à connaître (Athènes & Rome)',b:HN,c:K.hn},
+{id:'hr',t:'🚧 H2 · II.A — Rome : le principat d\'Auguste (en cours)',b:HR,c:K.hr},
+{id:'hall',t:'🎯 Contrôle général histoire (tout mélangé)',b:[].concat(H1,HA,HB,HC,HM,HN,HR)}];
+/* ===== FIN ANGLAIS & HISTOIRE ===== */
+
+const SUBJ=[
+{n:'Espagnol',e:'🇪🇸',ch:ESP},
+{n:'Mathématiques',e:'📐',ch:MATHS},
+{n:'Histoire-Géo',e:'🌍',ch:HIS},
+{n:'Anglais',e:'🇬🇧',ch:ENG},
+{n:'Français',e:'📚',off:1},{n:'SVT',e:'🧬',off:1},{n:'Physique-Chimie',e:'⚗️',off:1},{n:'Technologie',e:'💻',off:1}];
+const CATNAMES={qcm:"QCM (expressions)",esfr:"traduction ES→FR",fres:"traduction FR→ES",fill:"phrases à compléter",match:"association de vocabulaire",def:"définitions",vf:"vrai / faux",calc:"calculs",not:"notations",prop:"propriétés",int:"intervalles",comp:"à compléter",conj:"conjugaison",voc:"vocabulaire",irr:"verbes irréguliers",trad:"traduction",grm:"grammaire",date:"dates",inst:"institutions",qui:"personnages",doc:"documents",cause:"causes et faits",notion:"notions",meth:"méthode"};
+
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=s=>s.replace(/\^(\{[^}]*\}|-?\w+)/g,(m,p)=>'<sup>'+p.replace(/[{}]/g,'')+'</sup>');
+function norm(s){return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'').replace(/,/g,'.').replace(/[−–]/g,'-');}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));$(id).classList.remove('hidden');window.scrollTo(0,0);}
+
+let curSi=0,curCi=0,quiz=[],idx=0,score=0,validated=false,chosen=null,playerName='',wrongCats={};
+
+function home(){
+  $('tagline').textContent='Choisis une matière';
+  $('homeGrid').innerHTML=SUBJ.map((s,i)=>'<button class="sub" '+(s.off?'disabled':'onclick="openSubj('+i+')"')+'><span class="em">'+s.e+'</span>'+s.n+(s.off?'<small>Indisponible</small>':'')+'</button>').join('');
+  show('homeScreen');
+}
+function openSubj(i){
+  curSi=i;const s=SUBJ[i];$('tagline').textContent=s.n;$('subjTitle').textContent=s.e+' '+s.n;
+  $('chList').innerHTML=s.ch.map((c,j)=>'<div class="card ch"><b>'+c.t+'</b><div class="row">'+(c.c?'<button class="small" onclick="openCourse('+j+')">📖 Cours</button>':'')+'<button class="small" onclick="openSetup('+j+')">📝 Test</button></div></div>').join('');
+  show('subjScreen');
+}
+function openCourse(j){curCi=j;const c=SUBJ[curSi].ch[j];$('courseBody').innerHTML='<h2>'+c.t+'</h2>'+fmt(c.c);show('courseScreen');}
+function openSetup(j){
+  curCi=j;const c=SUBJ[curSi].ch[j],n=Math.min(50,c.b.length);let o='';
+  for(let k=5;k<=n;k+=5)o+='<option value="'+k+'">'+k+' questions</option>';
+  if(n%5)o+='<option value="'+n+'">'+n+' questions</option>';
+  $('countInput').innerHTML=o;$('countInput').value=Math.min(10,n);
+  $('setupTitle').textContent=c.t;
+  try{$('nameInput').value=localStorage.getItem('rev_name')||$('nameInput').value;}catch(e){}
+  show('setupScreen');
+}
+function startQuiz(){
+  playerName=$('nameInput').value.trim()||'Anonyme';
+  try{localStorage.setItem('rev_name',playerName);}catch(e){}
+  const c=SUBJ[curSi].ch[curCi];
+  quiz=shuffle(c.b.slice()).slice(0,parseInt($('countInput').value));
+  idx=0;score=0;wrongCats={};show('quizScreen');renderQ();
+}
+function renderQ(){
+  validated=false;chosen=null;const q=quiz[idx];
+  $('qcount').textContent='Question '+(idx+1)+' / '+quiz.length+'  ·  '+CATNAMES[q.cat];
+  $('progBar').style.width=(idx/quiz.length*100)+'%';
+  let h='<div class="q">'+fmt(q.q)+'</div>';
+  if(q.kind==='choice'){
+    const o=q.opts.map((_,i)=>i);if(!q.fix)shuffle(o);
+    h+='<div class="opts">'+o.map(i=>'<button class="opt" data-i="'+i+'" onclick="pick('+i+')">'+fmt(q.opts[i])+'</button>').join('')+'</div>';
+  } else h+='<input type="text" id="txtAns" placeholder="ta réponse..." autocomplete="off" autocapitalize="off">';
+  $('qBody').innerHTML=h+'<div class="feedback" id="fb"></div>';
+  const b=$('actionBtn');b.textContent='Valider';b.disabled=(q.kind==='choice');b.onclick=validate;
+  if(q.kind==='text'){$('txtAns').addEventListener('keyup',e=>{if(e.key==='Enter')validate();});setTimeout(()=>$('txtAns').focus(),50);}
+}
+function pick(i){
+  if(validated)return;chosen=i;
+  document.querySelectorAll('.opt').forEach(b=>b.classList.toggle('selected',+b.dataset.i===i));
+  $('actionBtn').disabled=false;
+}
+function validate(){
+  const q=quiz[idx];
+  if(validated){idx++;if(idx>=quiz.length)finish();else renderQ();return;}
+  let ok,exp;
+  if(q.kind==='choice'){
+    if(chosen===null)return;
+    ok=chosen===q.ans;exp=q.opts[q.ans];
+    document.querySelectorAll('.opt').forEach(b=>{const i=+b.dataset.i;if(i===q.ans)b.classList.add('correct');else if(i===chosen)b.classList.add('wrong');});
+  } else {
+    const v=norm($('txtAns').value);ok=v.length>0&&q.ans.map(norm).includes(v);exp=q.ans[0];
+  }
+  const fb=$('fb');fb.className='feedback '+(ok?'ok':'bad');
+  fb.innerHTML=ok?'✔ Correct !':'✘ Réponse attendue : '+fmt(exp);
+  if(ok)score++;else wrongCats[q.cat]=(wrongCats[q.cat]||0)+1;
+  validated=true;
+  $('actionBtn').textContent=(idx===quiz.length-1)?'Voir mon résultat':'Suivant →';
+}
+function finish(){
+  show('resultScreen');
+  const n=Math.round(score/quiz.length*20);
+  $('scoreNum').textContent=n+' / 20';
+  $('scoreMsg').textContent=n>=17?"¡Excelente! "+playerName+", c'est très bien acquis.":n>=13?"Bon travail, "+playerName+" — quelques révisions à faire.":n>=8?"Pas mal, mais plusieurs points sont à revoir.":"Il faut reprendre le chapitre, "+playerName+".";
+  const e=Object.entries(wrongCats).sort((a,b)=>b[1]-a[1]);
+  $('weakAreas').innerHTML=e.length?'<p class="msg"><b>À revoir en priorité :</b></p><ul class="rank">'+e.map(([c,k])=>'<li><span>'+CATNAMES[c]+'</span><span>'+k+' erreur(s)</span></li>').join('')+'</ul>':'<p class="msg">Aucune erreur, bravo ! 🎉</p>';
+  $('courseBtn').style.display=SUBJ[curSi].ch[curCi].c?'block':'none';
+  const k='lb_'+SUBJ[curSi].ch[curCi].id;let l=[];
+  try{l=JSON.parse(localStorage.getItem(k)||'[]');}catch(x){}
+  const r=l.find(x=>norm(x.name)===norm(playerName));
+  if(r)r.best=Math.max(r.best,n);else l.push({name:playerName,best:n});
+  l.sort((a,b)=>b.best-a.best);
+  try{localStorage.setItem(k,JSON.stringify(l));}catch(x){}
+  l=l.slice(0,20);const p=[l[1],l[0],l[2]],cl=['pod2','pod1','pod3'];
+  $('podium').innerHTML=p.map((r,i)=>r?'<div class="pod '+cl[i]+'"><span class="name">'+esc(r.name)+'</span>'+r.best+'/20</div>':'').join('');
+  $('rankList').innerHTML=l.map((r,i)=>'<li><span>'+(i+1)+'. '+esc(r.name)+'</span><span>'+r.best+'/20</span></li>').join('');
+}
+home();
+</script>
+</body>
+</html>
